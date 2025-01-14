@@ -52,7 +52,7 @@ def etl_blocks(**context):
     end_block = context['ti'].xcom_pull(task_ids='load_config', key='to_block')
 
     for from_block in range(start_block, end_block, batch_size):
-        to_block = min(from_block + batch_size - 1, to_block)
+        to_block = min(from_block + batch_size - 1, end_block)
         data = fetch_blocks_data(rpc_url, from_block, to_block)
         df = pd.DataFrame(data)
         load_df(clickhouse_client, df, clickhouse_db, 'blocks', "ReplacingMergeTree", "block_number")
@@ -62,7 +62,7 @@ def etl_events(**context):
     end_block = context['ti'].xcom_pull(task_ids='load_config', key='to_block')
 
     for from_block in range(start_block, end_block, batch_size):
-        to_block = min(from_block + batch_size - 1, to_block)
+        to_block = min(from_block + batch_size - 1, end_block)
         data = fetch_events_data(rpc_url,contract_address, from_block, to_block)
         if len(data) > 0:
             df = pd.DataFrame(data)
