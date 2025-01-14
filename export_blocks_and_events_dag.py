@@ -34,7 +34,7 @@ def load_config(**context):
         from_block = int(latest_crawled_block[0][0])
     else:
         from_block = 0
-    to_block = fetch_lastest_block() - 1
+    to_block = fetch_lastest_block(rpc_url) - 1
 
     input_config = context['dag_run'].conf
     if 'from_block' in input_config:
