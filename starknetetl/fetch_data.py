@@ -40,7 +40,7 @@ def fetch_blocks_data(rpc_url: str,from_block: int, to_block: int) -> list:
                 }
             )
         time_process = (time.time() - start)/60
-        logging.infor(f'Success extract details block {from_block} to {to_block} in {time_process:.2f} minutes')
+        logging.info(f'Success extract details block {from_block} to {to_block} in {time_process:.2f} minutes')
     else:
         logging.error('Failed to extract block details')
             

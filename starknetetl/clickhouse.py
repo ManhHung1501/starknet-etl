@@ -1,4 +1,4 @@
-import logging
+import logging, time
 from datetime import datetime
 from clickhouse_driver import Client
 
@@ -48,7 +48,7 @@ def generate_create_table_query(df, target_db: str, target_table: str, engine: s
     return create_table_query
 
 def load_df(clickhouse_client, df, target_db: str, target_table: str, engine: str ="MergeTree", primary_column: str = None):
-    start = datetime.now()
+    start = time.time()
     tbl_name = f"{target_db}.{target_table}"
     logging.info(f'Starting to load dataframe to {tbl_name} ...')
     try:
@@ -59,7 +59,7 @@ def load_df(clickhouse_client, df, target_db: str, target_table: str, engine: st
         if primary_column:
             clickhouse_client.execute(f"OPTIMIZE TABLE {tbl_name} FINAL")
         
-        time_process = datetime.now() - start
+        time_process = time.time() - start
         logging.info(f'Complete Load data to Clickhouse in {time_process:.2f} with {len(df)} rows')
     except Exception as e:
         logging.error(f'Load data frame get error: {e}')
