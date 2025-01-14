@@ -54,7 +54,7 @@ def load_df(clickhouse_client, df, target_db: str, target_table: str, engine: st
     try:
         # Create database and table if not exist
         clickhouse_client.execute(f"CREATE DATABASE IF NOT EXISTS {target_db}")
-        clickhouse_client.excute(generate_create_table_query(df, target_db, target_table, engine, primary_column))
+        clickhouse_client.execute(generate_create_table_query(df, target_db, target_table, engine, primary_column))
         clickhouse_client.insert_dataframe(f"INSERT INTO {tbl_name} VALUES", df)
         if primary_column:
             clickhouse_client.execute(f"OPTIMIZE TABLE {tbl_name} FINAL")
