@@ -1,4 +1,4 @@
-import os, logging
+import os, logging, json
 import pandas as pd
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
@@ -31,7 +31,7 @@ batch_size = 10000
 def load_config(**context):
     latest_crawled_block = clickhouse_client.execute(f"SELECT MAX(block_number) FROM {clickhouse_db}.events")
     if latest_crawled_block and latest_crawled_block[0][0] is not None: 
-        from_block = int(latest_crawled_block[0][0])
+        from_block = int(latest_crawled_block[0][0]) - 1
     else:
         from_block = 0
     to_block = fetch_lastest_block(rpc_url) - 1
@@ -65,6 +65,8 @@ def etl_events(**context):
         to_block = min(from_block + batch_size - 1, to_block)
         data = fetch_events_data(rpc_url,contract_address, from_block, to_block)
         df = pd.DataFrame(data)
+        for col in ['keys', 'data']:
+            df[col] = df[col].apply(lambda x: json.dumps(x) if isinstance(x, list) else x)
         load_df(clickhouse_client, df, clickhouse_db, 'events')
         
 # Default arguments for the DAG
