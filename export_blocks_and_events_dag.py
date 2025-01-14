@@ -48,8 +48,8 @@ def load_config(**context):
     logging.info(f"From block: {from_block} - To block: {to_block}")
 
 def etl_blocks(**context):
-    from_block = ti.xcom_pull(task_ids='load_config', value=from_block)
-    to_block = ti.xcom_pull(task_ids='load_config', value=to_block)
+    from_block = context['ti'].xcom_pull(task_ids='load_config', value=from_block)
+    to_block = context['ti'].xcom_pull(task_ids='load_config', value=to_block)
 
     for from_block in range(from_block, to_block, batch_size):
         to_block = min(from_block + batch_size - 1, to_block)
@@ -58,8 +58,8 @@ def etl_blocks(**context):
         load_df(clickhouse_client, df, clickhouse_db, 'blocks', "ReplacingMergeTree", "block_number")
 
 def etl_events(**context):
-    from_block = ti.xcom_pull(task_ids='load_config', value=from_block)
-    to_block = ti.xcom_pull(task_ids='load_config', value=to_block)
+    from_block = context['ti'].xcom_pull(task_ids='load_config', value=from_block)
+    to_block = context['ti'].xcom_pull(task_ids='load_config', value=to_block)
 
     for from_block in range(from_block, to_block, batch_size):
         to_block = min(from_block + batch_size - 1, to_block)
