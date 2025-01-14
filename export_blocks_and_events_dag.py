@@ -12,7 +12,7 @@ from starknetetl.clickhouse import load_df,init_connection
 
 
 
-load_dotenv("variables.env")
+load_dotenv()
 
 # RPC 
 rpc_url = os.getenv('RPC_URL')
