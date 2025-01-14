@@ -5,12 +5,10 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.utils.task_group import TaskGroup
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
 
 from starknetetl.fetch_data import fetch_blocks_data,fetch_events_data,fetch_lastest_block
 from starknetetl.clickhouse import load_df,init_connection
-
-
 
 load_dotenv()
 
@@ -106,6 +104,11 @@ with DAG(
                                     provide_context=True,
                                 )
     
+    trigger_report_dag = TriggerDagRunOperator(
+                    task_id='trigger_report_dag_task',
+                    trigger_dag_id='Generate_Ekubo_Swap_Report_DAG',
+                )
 
-    load_config_task >> etl_events_task >> etl_blocks_task
+
+    load_config_task >> etl_events_task >> etl_blocks_task >> trigger_report_dag
     
