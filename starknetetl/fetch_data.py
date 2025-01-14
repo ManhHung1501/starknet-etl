@@ -96,6 +96,6 @@ def fetch_events_data(
             for event in result['events']:
                 events_data.append(event)
 
-    time_process = time.time()- start
+    time_process = (time.time() - start)/60
     logging.info(f'Complete Crawl from block {from_block} to {to_block} in {time_process:.2f} minutes with {len(events_data)} events')
     return events_data

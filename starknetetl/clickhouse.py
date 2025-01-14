@@ -59,7 +59,7 @@ def load_df(clickhouse_client, df, target_db: str, target_table: str, engine: st
         if primary_column:
             clickhouse_client.execute(f"OPTIMIZE TABLE {tbl_name} FINAL")
         
-        time_process = time.time() - start
-        logging.info(f'Complete Load data to Clickhouse in {time_process:.2f} with {len(df)} rows')
+        time_process = (time.time() - start)/60
+        logging.info(f'Complete Load data to Clickhouse in {time_process:.2f} minutes with {len(df)} rows')
     except Exception as e:
         logging.error(f'Load data frame get error: {e}')
