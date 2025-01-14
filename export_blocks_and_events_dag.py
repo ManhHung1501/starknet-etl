@@ -31,7 +31,7 @@ batch_size = 10000
 def load_config(**context):
     latest_crawled_block = clickhouse_client.execute(f"SELECT MAX(block_number) FROM {clickhouse_db}.events")
     if latest_crawled_block and latest_crawled_block[0][0] is not None: 
-        from_block = int(latest_crawled_block[0][0]) - 1
+        from_block = int(latest_crawled_block[0][0]) + 1
     else:
         from_block = 0
     to_block = fetch_lastest_block(rpc_url) - 1
