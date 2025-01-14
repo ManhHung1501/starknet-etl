@@ -64,10 +64,12 @@ def etl_events(**context):
     for from_block in range(from_block, to_block, batch_size):
         to_block = min(from_block + batch_size - 1, to_block)
         data = fetch_events_data(rpc_url,contract_address, from_block, to_block)
-        df = pd.DataFrame(data)
-        for col in ['keys', 'data']:
-            df[col] = df[col].apply(lambda x: json.dumps(x) if isinstance(x, list) else x)
-        load_df(clickhouse_client, df, clickhouse_db, 'events')
+        if len(data) > 0:
+            df = pd.DataFrame(data)
+            for col in ['keys', 'data']:
+                df[col] = df[col].apply(lambda x: json.dumps(x) if isinstance(x, list) else x)
+            load_df(clickhouse_client, df, clickhouse_db, 'events')
+
         
 # Default arguments for the DAG
 default_args = {

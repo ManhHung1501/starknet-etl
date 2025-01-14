@@ -97,5 +97,5 @@ def fetch_events_data(
                 events_data.append(event)
 
     time_process = time.time()- start
-    logging.info(f'Complete Crawl from block {from_block} to {to_block} in {time_process:.2f} minutes')
+    logging.info(f'Complete Crawl from block {from_block} to {to_block} in {time_process:.2f} minutes with {len(events_data)} events')
     return events_data
