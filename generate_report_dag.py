@@ -1,10 +1,9 @@
-import os, time
+import os, time, logging
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.utils.task_group import TaskGroup
 
 from starknetetl.clickhouse import init_connection
 from starknetetl.get_token_price import get_token_price, get_price
@@ -24,6 +23,7 @@ clickhouse_client = init_connection(host,user,password)
 mongo_url = os.getenv('MONGODB_URL')
 
 def generate_top_token_24h(top_n: int = 30):
+    logging.info(f'Starting to generate report ...')
     df = clickhouse_client.query_dataframe("""
         WITH events AS (
             SELECT
@@ -54,6 +54,8 @@ def generate_top_token_24h(top_n: int = 30):
         LEFT JOIN starknet_onchain.token_coingeko tc ON e.token_0 = tc.token
         ORDER BY e.event_date DESC;
     """)
+    logging.info(f'Query data from clickhouse success!')
+
     df = df[df['decimals'] != 0]
     df = df[df['id'].notna()]
     coingeko_ids = df['id'].unique()
@@ -74,14 +76,19 @@ def generate_top_token_24h(top_n: int = 30):
     # Select the top 30 pairs based on count
     top_n_pairs = df_summary.sort_values(by='vol_24h', ascending=False).head(top_n)
     top_n_pairs['report_time'] = int(time.time())
-    
+    logging.info(f'Calculate data Success!')
     # Insert the data into MongoDB
     # Connect to MongoDB server
     data_dict = top_n_pairs.to_dict(orient='records')
     mongo_client = MongoClient(mongo_url)
     mongo_db = mongo_client["graphscope"]
-    collection = mongo_db["onchain_data_ekubo"]
+
+    current_date = datetime.now().strftime("%Y%m%d")
+    collection_name = f"onchain_data_ekubo_{current_date}"
+    collection = mongo_db[collection_name]
     collection.insert_many(data_dict)
+    
+    logging.info(f'Insert data to Mongo success at collection {collection_name}')
 
 # Default arguments for the DAG
 default_args = {
