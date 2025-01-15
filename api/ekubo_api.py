@@ -40,7 +40,7 @@ def get_data(
         WHERE report_date BETWEEN '{from_date}' AND '{to_date}'
         ORDER BY vol_24h DESC
         """
-        result = client.query(query).result_rows
+        result = client.execute(query)
         if not result:
             return {"message": "No data found for the given date range"}
         return {"data": result}

@@ -80,7 +80,7 @@ def generate_top_token_24h(top_n: int = 30):
     logging.info(f'Calculate data Success!')
     # Insert the data into ch
     report_table = 'top_txn_token_report'
-    clickhouse_client.execute(f"DELETE FROM {clickhouse_db}.{report_table} WHERE report_date = '{report_date}'")
+    clickhouse_client.execute(f"ALTER TABLE  {clickhouse_db}.{report_table} DELETE WHERE report_date = '{report_date}'")
     load_df(clickhouse_client, top_n_pairs,clickhouse_db,report_table)
     
     logging.info(f'Insert data to success')
