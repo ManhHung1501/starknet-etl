@@ -75,12 +75,10 @@ def generate_top_token_24h(top_n: int = 30):
 
     # Select the top 30 pairs based on count
     top_n_pairs = df_summary.sort_values(by='vol_24h', ascending=False).head(top_n)
-    report_date = str(date.today())
-    top_n_pairs['report_date'] = report_date
     logging.info(f'Calculate data Success!')
     # Insert the data into ch
     report_table = 'top_txn_token_report'
-    clickhouse_client.execute(f"ALTER TABLE  {clickhouse_db}.{report_table} DELETE WHERE report_date = '{report_date}'")
+    clickhouse_client.execute(f"TRUNCATE TABLE IF EXISTS {clickhouse_db}.{report_table}")
     load_df(clickhouse_client, top_n_pairs,clickhouse_db,report_table)
     
     logging.info(f'Insert data to success')

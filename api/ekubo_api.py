@@ -23,21 +23,12 @@ client = Client(
 app = FastAPI()
 
 @app.get("/top_n_txn_token")
-def get_data(
-    from_date: Optional[date] = Query(None), 
-    to_date: Optional[date] = Query(None)
-):
-    # Default to today's date if no date is provided
-    if from_date is None:
-        from_date = date.today()
-    if to_date is None:
-        to_date = date.today()
+def get_data():
     
     try:
         query = f"""
         SELECT pair, vol_24h, txn_24h
         FROM {clickhouse_db}.top_txn_token_report
-        WHERE report_date BETWEEN '{from_date}' AND '{to_date}'
         ORDER BY vol_24h DESC
         """
         result = client.execute(query)
