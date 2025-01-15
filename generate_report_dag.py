@@ -8,7 +8,7 @@ from airflow.operators.python import PythonOperator
 from starknetetl.clickhouse import init_connection, load_df
 from starknetetl.get_token_price import get_token_price, get_price
 
-from pymongo import MongoClient
+import numpy as np
 
 
 load_dotenv()
@@ -30,7 +30,8 @@ def generate_top_token_24h(top_n: int = 30):
                 event_date,
                 arrayElement(parsed_data, 2) AS token_0,
                 arrayElement(parsed_data, 3) AS token_1,
-                arrayElement(parsed_data, 15) AS amount
+                arrayElement(parsed_data, 7) AS amount,
+                arrayElement(parsed_data, 9) AS is_token1
             FROM
             (
                 SELECT
@@ -43,30 +44,35 @@ def generate_top_token_24h(top_n: int = 30):
             WHERE event_date BETWEEN toDateTime(now() - INTERVAL 1 DAY) AND toDateTime(now())
             )
         SELECT
+            token_0,
             token_1,
-            t0.symbol AS token0,
-            t1.symbol AS token1,
-            e.amount AS amount,
-            t1.decimals AS decimals
+            is_token1,
+            t0.symbol AS symbol0,
+            t1.symbol AS symbol1,
+            t0.decimals AS decimals0,
+            t1.decimals AS decimals1,
+            e.amount AS amount
         FROM events e
         LEFT JOIN starknet_onchain.token t0 ON e.token_0 = t0.token
         LEFT JOIN starknet_onchain.token t1 ON e.token_1 = t1.token
         ORDER BY e.event_date DESC;
     """)
     logging.info(f'Query data from clickhouse success!')
-
+    df['is_token1'] = df['is_token1'].apply(lambda x: int(x, 16))
+    df['decimals'] = np.where(df['is_token1']==1,df['decimals1'],df['decimals0'])
+    df['token_address'] = np.where(df['is_token1']==1,df['token_1'],df['token_0'])
     df = df[df['decimals'] != 0]
-    # df = df[df['id'].notna()]
-    token_addresses = df['token_1'].unique()
+
+    token_addresses = df['token_address'].unique()
     price_data = get_token_price(token_addresses)
-    df['price'] = df['token_1'].apply(lambda x: get_price(price_data, x))
+    df['price'] = df['token_address'].apply(lambda x: get_price(price_data, x))
 
     df = df[df['price'] != 0]
     df['amount'] = df['amount'].apply(lambda x: int(x, 16))
     df['volumn'] = df.apply(lambda row: row['amount'] / (10 ** row['decimals']) * row['price'], axis=1)
 
     # Sort tokens to ensure (token_0, token_1) pairs are consistent regardless of order
-    df['pair'] = df.apply(lambda row: '/'.join(sorted([row['token0'], row['token1']])), axis=1)
+    df['pair'] = df.apply(lambda row: '/'.join(sorted([row['symbol0'], row['symbol1']])), axis=1)
 
     # Group by token pairs and count occurrences
     df_summary = df.groupby('pair').agg(
