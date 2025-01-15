@@ -41,6 +41,14 @@ def get_data(
         ORDER BY vol_24h DESC
         """
         result = client.execute(query)
+
+        columns = ["pair", "vol_24h", "txn_24h", "report_date"]
+        formatted_result = [dict(zip(columns, row)) for row in result]
+        
+        if not formatted_result:
+            return {"message": "No data found for the given date range"}
+        
+        return {"data": formatted_result}
         if not result:
             return {"message": "No data found for the given date range"}
         return {"data": result}
