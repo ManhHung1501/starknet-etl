@@ -22,21 +22,11 @@ client = Client(
 
 app = FastAPI()
 
-@app.get("/data")
+@app.get("/top_n_txn_token")
 def get_data(
     from_date: Optional[date] = Query(None), 
     to_date: Optional[date] = Query(None)
 ):
-    """
-    Get data from ClickHouse for a specified date range, defaulting to today's date if no date is provided.
-    
-    Parameters:
-    - from_date: Start date of the range (inclusive), defaults to today if not provided.
-    - to_date: End date of the range (inclusive), defaults to today if not provided.
-    
-    Returns:
-    - JSON response with rows within the date range
-    """
     # Default to today's date if no date is provided
     if from_date is None:
         from_date = date.today()
