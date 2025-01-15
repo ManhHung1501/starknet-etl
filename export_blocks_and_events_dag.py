@@ -86,7 +86,7 @@ with DAG(
     dag_id='Export_Blocks_And_Events_Ekubo_DAG',
     default_args=default_args,
     tags=["Blockchain", "Ekubo", "Blocks", "Events"],
-    schedule_interval="*/10 * * * *",
+    schedule_interval="0 */4 * * *",
     catchup=False,
 ) as dag:
     load_config_task = PythonOperator(task_id=f"load_config",
