@@ -30,7 +30,7 @@ def generate_top_token_24h(top_n: int = 30):
                 event_date,
                 arrayElement(parsed_data, 2) AS token_0,
                 arrayElement(parsed_data, 3) AS token_1,
-                arrayElement(parsed_data, 13) AS amount
+                arrayElement(parsed_data, 15) AS amount
             FROM
             (
                 SELECT
@@ -51,7 +51,7 @@ def generate_top_token_24h(top_n: int = 30):
         FROM events e
         LEFT JOIN starknet_onchain.token t0 ON e.token_0 = t0.token
         LEFT JOIN starknet_onchain.token t1 ON e.token_1 = t1.token
-        LEFT JOIN starknet_onchain.token_coingeko tc ON e.token_0 = tc.token
+        LEFT JOIN starknet_onchain.token_coingeko tc ON e.token_1 = tc.token
         ORDER BY e.event_date DESC;
     """)
     logging.info(f'Query data from clickhouse success!')
