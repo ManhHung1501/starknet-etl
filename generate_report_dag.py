@@ -1,11 +1,11 @@
-import os, time, logging
+import os, logging
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from starknetetl.clickhouse import init_connection
+from starknetetl.clickhouse import init_connection, load_df
 from starknetetl.get_token_price import get_token_price, get_price
 
 from pymongo import MongoClient
@@ -75,20 +75,13 @@ def generate_top_token_24h(top_n: int = 30):
 
     # Select the top 30 pairs based on count
     top_n_pairs = df_summary.sort_values(by='vol_24h', ascending=False).head(top_n)
-    top_n_pairs['report_time'] = int(time.time())
+    top_n_pairs['report_date'] = date.today()
     logging.info(f'Calculate data Success!')
     # Insert the data into MongoDB
-    # Connect to MongoDB server
-    data_dict = top_n_pairs.to_dict(orient='records')
-    mongo_client = MongoClient(mongo_url)
-    mongo_db = mongo_client["graphscope"]
-
-    current_date = datetime.now().strftime("%Y%m%d")
-    collection_name = f"onchain_data_ekubo_{current_date}"
-    collection = mongo_db[collection_name]
-    collection.insert_many(data_dict)
+    load_df(clickhouse_client, top_n_pairs,clickhouse_db,'top_txn_token_report')
     
-    logging.info(f'Insert data to Mongo success at collection {collection_name}')
+    
+    logging.info(f'Insert data to success')
 
 # Default arguments for the DAG
 default_args = {
