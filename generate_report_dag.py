@@ -46,7 +46,7 @@ def generate_top_token_24h(top_n: int = 30):
             t0.symbol AS token_0,
             t1.symbol AS token_1,
             e.amount AS amount,
-            t0.decimals AS decimals,
+            t1.decimals AS decimals,
             id
         FROM events e
         LEFT JOIN starknet_onchain.token t0 ON e.token_0 = t0.token
