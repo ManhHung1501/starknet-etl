@@ -3,7 +3,7 @@ __pycache__/
 
 venv
 *.env
-
+*.csv
 *.json
 
 test.py
