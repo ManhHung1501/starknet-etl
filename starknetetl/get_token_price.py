@@ -15,7 +15,7 @@ def get_coingeko_id():
                     'id': coin['id'],
                     'token': coin['platforms']['starknet']
                 })
-        return result
+        return data
     else:
         raise Exception(f"Failed to fetch data: {response.status_code}, {response.text}")
     
