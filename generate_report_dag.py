@@ -75,7 +75,10 @@ def generate_top_token_24h(top_n: int = 30):
             new_token_detail = crawl_token_detail(driver, row['token_address'])
             new_tokens.append(new_token_detail)
             df.loc[idx, 'decimals'] = new_token_detail['decimals']
-            df.loc[idx, 'symbol'] = new_token_detail['symbol']
+            if row['is_token1'] == 1:
+                df.loc[idx, 'symbol1'] = new_token_detail['symbol']
+            else:
+                df.loc[idx, 'symbol0'] = new_token_detail['symbol']
     driver.quit()
     df = df[df['decimals'] != 0]
 
