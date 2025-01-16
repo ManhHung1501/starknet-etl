@@ -67,7 +67,7 @@ def generate_top_token_24h(top_n: int = 30):
     price_data = get_token_price(token_addresses)
     df['price'] = df['token_address'].apply(lambda x: get_price(price_data, x))
 
-    df = df[df['price'] != 0]
+    df = df[(df['price'] != 0) & (df['price']!=None)]
     df['amount'] = df['amount'].apply(lambda x: int(x, 16))
     df['volumn'] = df.apply(lambda row: row['amount'] / (10 ** row['decimals']) * row['price'], axis=1)
 

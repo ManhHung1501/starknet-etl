@@ -53,7 +53,7 @@ def get_token_price(token_address: list):
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 data = response.json()
-                print(data)
+
                 for token, price in data["data"]["attributes"]["token_prices"].items():
                     if price:
                         price_result[token] = float(price)
