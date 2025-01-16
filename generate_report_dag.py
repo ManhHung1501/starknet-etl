@@ -65,21 +65,29 @@ def generate_top_token_24h(top_n: int = 30):
         ORDER BY e.event_date DESC;
     """)
     logging.info(f'Query data from clickhouse success!')
+    driver = setup_driver(chrome_path)
+    new_tokens = []
+    token_details_cache = {}
+    for idx, row in df.iterrows():
+        for col_prefix, token_col in [('0', 'token_0'), ('1', 'token_1')]:
+            symbol_col = f'symbol{col_prefix}'
+            decimals_col = f'decimals{col_prefix}'
+            
+            if pd.isna(row[symbol_col]) and row[token_col] not in token_details_cache:
+                # Crawl token details and cache the result
+                new_token_detail = crawl_token_detail(driver, row[token_col])
+                new_tokens.append(new_token_detail)
+                token_details_cache[row[token_col]] = new_token_detail
+                
+            # Update DataFrame with cached token details
+            if row[token_col] in token_details_cache:
+                df.loc[idx, decimals_col] = token_details_cache[row[token_col]]['decimals']
+                df.loc[idx, symbol_col] = token_details_cache[row[token_col]]['symbol']
+    driver.quit()
+
     df['is_token1'] = df['is_token1'].apply(lambda x: int(x, 16))
     df['decimals'] = np.where(df['is_token1']==1,df['decimals1'],df['decimals0'])
     df['token_address'] = np.where(df['is_token1']==1,df['token_1'],df['token_0'])
-    new_tokens = []
-    driver = setup_driver(chrome_path)
-    for idx, row in df.iterrows():
-        if pd.isna(row['decimals']):
-            new_token_detail = crawl_token_detail(driver, row['token_address'])
-            new_tokens.append(new_token_detail)
-            df.loc[idx, 'decimals'] = new_token_detail['decimals']
-            if row['is_token1'] == 1:
-                df.loc[idx, 'symbol1'] = new_token_detail['symbol']
-            else:
-                df.loc[idx, 'symbol0'] = new_token_detail['symbol']
-    driver.quit()
     df = df[df['decimals'] != 0]
 
     if new_tokens:
