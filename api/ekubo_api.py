@@ -23,12 +23,33 @@ client = Client(
 app = FastAPI()
 
 @app.get("/top_n_txn_token")
-def get_data():
+def get_txn_data():
     
     try:
         query = f"""
         SELECT pair, vol_24h, txn_24h
         FROM {clickhouse_db}.top_txn_token_report
+        ORDER BY txn_24h DESC
+        """
+        result = client.execute(query)
+
+        columns = ["pair", "vol_24h", "txn_24h"]
+        formatted_result = [dict(zip(columns, row)) for row in result]
+        
+        if not formatted_result:
+            return {"message": "No data found for the given date range"}
+        
+        return {"top_tokens": formatted_result}
+       
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/top_n_vol_token")
+def get_vol_data():
+    try:
+        query = f"""
+        SELECT pair, vol_24h, txn_24h
+        FROM {clickhouse_db}.top_vol_token_report
         ORDER BY vol_24h DESC
         """
         result = client.execute(query)

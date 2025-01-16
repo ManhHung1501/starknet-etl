@@ -29,7 +29,7 @@ clickhouse_client = init_connection(host,user,password)
 # MONGODB
 mongo_url = os.getenv('MONGODB_URL')
 
-def generate_top_token_24h(top_n: int = 30):
+def generate_top_token_24h(top_type: str='txn',top_n: int = 30):
     logging.info(f'Starting to generate report ...')
     df = clickhouse_client.query_dataframe("""
         WITH events AS (
@@ -112,10 +112,10 @@ def generate_top_token_24h(top_n: int = 30):
     ).reset_index()
 
     # Select the top 30 pairs based on count
-    top_n_pairs = df_summary.sort_values(by='vol_24h', ascending=False).head(top_n)
+    top_n_pairs = df_summary.sort_values(by=f'{top_type}_24h', ascending=False).head(top_n)
     logging.info(f'Calculate data Success!')
     # Insert the data into ch
-    report_table = 'top_txn_token_report'
+    report_table = f'top_{top_type}_token_report'
     clickhouse_client.execute(f"TRUNCATE TABLE IF EXISTS {clickhouse_db}.{report_table}")
     load_df(clickhouse_client, top_n_pairs,clickhouse_db,report_table)
     
@@ -141,8 +141,18 @@ with DAG(
     schedule_interval=None,
     catchup=False,
 ) as dag:
-    generate_top_token_24h_task = PythonOperator(task_id=f"generate_top_token_24h",
+    generate_top_txn_token_24h_task = PythonOperator(task_id=f"generate_top_txn_token_24h",
                                         python_callable=generate_top_token_24h,
                                         provide_context=True,
+                                        op_kwargs={
+                                                'top_type': 'txn',
+                                            }
                                     )
     
+    generate_top_vol_token_24h_task = PythonOperator(task_id=f"generate_top_vol_token_24h",
+                                        python_callable=generate_top_token_24h,
+                                        provide_context=True,
+                                        op_kwargs={
+                                                'top_type': 'vol',
+                                            }
+                                    )
