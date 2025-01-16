@@ -53,8 +53,13 @@ def get_token_price(token_address: list):
             response = requests.get(url, headers=headers)
             if response.status_code == 200:
                 data = response.json()
+                print(data)
                 for token, price in data["data"]["attributes"]["token_prices"].items():
-                    price_result[token] = float(price)
+                    if price:
+                        price_result[token] = float(price)
+                    else:
+                        price_result[token] = 0
+                        print(f'Can not get price for {token}')
                 break  # Exit retry loop on success
             else:
                 print(f"Failed to fetch data {attempt + 1}/3: {response.status_code}, {response.text}")
