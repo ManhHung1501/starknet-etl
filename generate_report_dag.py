@@ -29,7 +29,7 @@ clickhouse_client = init_connection(host,user,password)
 # MONGODB
 mongo_url = os.getenv('MONGODB_URL')
 
-def generate_top_token_24h(top_type: str='txn',top_n: int = 30):
+def generate_top_token_24h(top_type: str,top_n: int = 30):
     logging.info(f'Starting to generate report ...')
     df = clickhouse_client.query_dataframe("""
         WITH events AS (
