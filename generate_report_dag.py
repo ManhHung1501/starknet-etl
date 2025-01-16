@@ -8,10 +8,17 @@ from airflow.operators.python import PythonOperator
 from starknetetl.clickhouse import init_connection, load_df
 from starknetetl.get_token_price import get_token_price, get_price
 
+from scraper.scrape_token import crawl_token_detail
+from scraper.scrape_utils import setup_driver
+
 import numpy as np
+import pandas as pd
 
 
 load_dotenv()
+# CHROME DRIVER PATH
+chrome_path = os.getenv("CHROME_DRIVER_PATH")
+
 # CLICKHOUSE
 host = os.getenv('CLICKHOUSE_HOST')
 port = os.getenv('CLICKHOUSE_PORT')
@@ -61,7 +68,20 @@ def generate_top_token_24h(top_n: int = 30):
     df['is_token1'] = df['is_token1'].apply(lambda x: int(x, 16))
     df['decimals'] = np.where(df['is_token1']==1,df['decimals1'],df['decimals0'])
     df['token_address'] = np.where(df['is_token1']==1,df['token_1'],df['token_0'])
+    new_tokens = []
+    driver = setup_driver(chrome_path)
+    for idx, row in df.iterrows():
+        if pd.isna(row['decimals']):
+            new_token_detail = crawl_token_detail(driver, row['token_address'])
+            new_tokens.append(new_token_detail)
+            df.loc[idx, 'decimals'] = new_token_detail['decimals']
+            df.loc[idx, 'symbol'] = new_token_detail['symbol']
+    driver.quit()
     df = df[df['decimals'] != 0]
+
+    if new_tokens:
+        df_new_token = pd.DataFrame(new_tokens)
+        load_df(clickhouse_client,df_new_token,clickhouse_db,'token','ReplacingMergeTree','token')
 
     token_addresses = df['token_address'].unique()
     price_data = get_token_price(token_addresses)
