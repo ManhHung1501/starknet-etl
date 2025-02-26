@@ -35,6 +35,6 @@ def crawl_token_detail(driver, token:str, retries: int=3 )->dict:
             if token_detail['decimals'] == 0:
                 print(f'Failed to get decimals for {token}')
             return token_detail
-        except Exception:
-            print(f'Get token {token} error attempt {attempt+1}/{retries}')
+        except Exception as e:
+            print(f'Get token {token} error attempt {attempt+1}/{retries}: {e}')
     
