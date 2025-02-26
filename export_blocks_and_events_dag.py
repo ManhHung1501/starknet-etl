@@ -32,9 +32,9 @@ def load_config(**context):
         if latest_crawled_block and latest_crawled_block[0][0] is not None: 
             from_block = int(latest_crawled_block[0][0]) + 1
         else:
-            from_block = 0
+            from_block = 1000000
     except Exception:
-        from_block = 0
+        from_block = 1000000
     
     to_block = fetch_lastest_block(rpc_url) - 1
 
